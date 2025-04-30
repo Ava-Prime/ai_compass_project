@@ -1,4 +1,4 @@
-certifi==2025.4.26
+# Remove the duplicate linecertifi==2025.4.26
 charset-normalizer==3.4.1
 idna==3.10
 python-dotenv==1.1.0
@@ -6,4 +6,4 @@ requests==2.32.3
 urllib3==2.4.0
 fastapi==0.110.0
 uvicorn[standard]==0.29.0
-requests==2.31.0
+
