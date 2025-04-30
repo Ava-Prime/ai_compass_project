@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 
 app = FastAPI()
 
@@ -17,7 +17,7 @@ class AgentRequest(BaseModel):
 class LogEvent(BaseModel):
     source: str
     message: str
-    timestamp: str
+    timestamp: str  # ISO 8601 format with timezone
 
 class PromptRequest(BaseModel):
     agent_name: str
@@ -52,4 +52,8 @@ def get_memory():
 def get_prompt_queue():
     return prompt_queue
 
+@app.post("/clear_prompt_queue")
+def clear_prompt_queue():
+    prompt_queue.clear()
+    return {"status": "cleared", "remaining": len(prompt_queue)}
 
