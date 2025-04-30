@@ -1,0 +1,77 @@
+openapi: 3.0.0
+info:
+  title: GPT Action Runtime
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+paths:
+  /call_agent:
+    post:
+      summary: Call another GPT with a prompt
+      operationId: callAgent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agent_name:
+                  type: string
+                input_prompt:
+                  type: string
+      responses:
+        '200':
+          description: Agent response
+
+  /log_event:
+    post:
+      summary: Log an event to the memory journal
+      operationId: logEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source:
+                  type: string
+                message:
+                  type: string
+                timestamp:
+                  type: string
+
+  /queue_prompt:
+    post:
+      summary: Add a prompt to the queue
+      operationId: queuePrompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agent_name:
+                  type: string
+                prompt:
+                  type: string
+                priority:
+                  type: integer
+  /memory_journal:
+    get:
+      summary: Fetch the shared memory log
+      operationId: fetchMemoryJournal
+      responses:
+        '200':
+          description: Memory contents
+
+  /prompt_queue:
+    get:
+      summary: Fetch the current prompt queue
+      operationId: fetchPromptQueue
+      responses:
+        '200':
+          description: Queue contents
+
