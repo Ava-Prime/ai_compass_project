@@ -1,87 +1,55 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 from datetime import datetime
-import json
-import os
 
-app = FastAPI(title="GPT Runtime API")
+app = FastAPI()
 
-# === File Paths ===
-LOG_DIR = "../logs"
-UNIVERSAL_DIR = "../docs/universal"
-QUEUE_FILE = os.path.join(LOG_DIR, "prompt_queue.json")
-JOURNAL_FILE = os.path.join(UNIVERSAL_DIR, "Master_Journal_Log.jsonl")
+# In-memory data stores
+memory_journal: List[dict] = []
+prompt_queue: List[dict] = []
 
-os.makedirs(LOG_DIR, exist_ok=True)
-os.makedirs(UNIVERSAL_DIR, exist_ok=True)
-
-# === Models ===
-class CallAgentRequest(BaseModel):
+# Models
+class AgentRequest(BaseModel):
     agent_name: str
     input_prompt: str
 
-class LogEventRequest(BaseModel):
+class LogEvent(BaseModel):
     source: str
     message: str
     timestamp: str
 
-class QueuePromptRequest(BaseModel):
+class PromptRequest(BaseModel):
     agent_name: str
     prompt: str
-    priority: Optional[int] = 5
+    priority: int
 
-# === Routes ===
-
+# Endpoints
 @app.post("/call_agent")
-async def call_agent(req: CallAgentRequest):
-    # In production, you'd make an API call to another GPT here
-    log_entry = {
-        "source": "runtime",
-        "message": f"Routing prompt to {req.agent_name}: {req.input_prompt}",
-        "timestamp": datetime.utcnow().isoformat()
+def call_agent(request: AgentRequest):
+    # Simulated response
+    response = {
+        "agent": request.agent_name,
+        "response": f"Simulated response for: '{request.input_prompt}'"
     }
-    append_to_journal(log_entry)
-    return {"status": "queued", "agent": req.agent_name, "prompt": req.input_prompt}
+    return response
 
 @app.post("/log_event")
-async def log_event(req: LogEventRequest):
-    append_to_journal(req.dict())
-    return {"status": "logged"}
+def log_event(event: LogEvent):
+    memory_journal.append(event.dict())
+    return {"status": "logged", "entry": event}
 
 @app.post("/queue_prompt")
-async def queue_prompt(req: QueuePromptRequest):
-    queue = load_json(QUEUE_FILE, default=[])
-    queue.append({
-        "agent_name": req.agent_name,
-        "prompt": req.prompt,
-        "priority": req.priority,
-        "timestamp": datetime.utcnow().isoformat()
-    })
-    with open(QUEUE_FILE, "w") as f:
-        json.dump(queue, f, indent=2)
-    return {"status": "queued"}
+def queue_prompt(prompt: PromptRequest):
+    prompt_queue.append(prompt.dict())
+    return {"status": "queued", "prompt": prompt}
 
 @app.get("/memory_journal")
-async def memory_journal():
-    if not os.path.exists(JOURNAL_FILE):
-        return []
-    with open(JOURNAL_FILE, "r") as f:
-        return [json.loads(line) for line in f.readlines()]
+def get_memory():
+    return memory_journal
 
 @app.get("/prompt_queue")
-async def prompt_queue():
-    return load_json(QUEUE_FILE, default=[])
-
-# === Utilities ===
-def append_to_journal(entry: dict):
-    with open(JOURNAL_FILE, "a") as f:
-        f.write(json.dumps(entry) + "\n")
-
-def load_json(path, default=None):
-    if not os.path.exists(path):
-        return default
-    with open(path, "r") as f:
-        return json.load(f)
+def get_prompt_queue():
+    return prompt_queue
 
 

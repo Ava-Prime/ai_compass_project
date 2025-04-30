@@ -3,7 +3,8 @@ info:
   title: GPT Action Runtime
   version: 1.0.0
 servers:
-  - url: http://localhost:8000
+  - url: https://gpt-runtime.onrender.com
+
 paths:
   /call_agent:
     post:

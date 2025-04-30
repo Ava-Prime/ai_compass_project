@@ -4,5 +4,6 @@ idna==3.10
 python-dotenv==1.1.0
 requests==2.32.3
 urllib3==2.4.0
-fastapi
-uvicorn
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+requests==2.31.0
