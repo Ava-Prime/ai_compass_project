@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime, timezone
@@ -27,7 +27,6 @@ class PromptRequest(BaseModel):
 # Endpoints
 @app.post("/call_agent")
 def call_agent(request: AgentRequest):
-    # Simulated response
     response = {
         "agent": request.agent_name,
         "response": f"Simulated response for: '{request.input_prompt}'"
@@ -56,4 +55,12 @@ def get_prompt_queue():
 def clear_prompt_queue():
     prompt_queue.clear()
     return {"status": "cleared", "remaining": len(prompt_queue)}
+
+# 🔔 Webhook endpoint for Notion events
+@app.post("/notion_webhook")
+async def notion_webhook(request: Request):
+    body = await request.json()
+    print("🔔 Webhook received from Notion:", body)
+    # Optional: append to memory or queue based on event type
+    return {"status": "received"}
 
