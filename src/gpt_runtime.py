@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List
@@ -6,11 +6,11 @@ from datetime import datetime, timezone
 
 app = FastAPI()
 
-# In-memory data stores
+# 🧠 In-memory data stores
 memory_journal: List[dict] = []
 prompt_queue: List[dict] = []
 
-# Models
+# 🧾 Models
 class AgentRequest(BaseModel):
     agent_name: str
     input_prompt: str
@@ -25,14 +25,14 @@ class PromptRequest(BaseModel):
     prompt: str
     priority: int
 
-# Endpoints
+# 🚀 Endpoints
+
 @app.post("/call_agent")
 def call_agent(request: AgentRequest):
-    response = {
+    return {
         "agent": request.agent_name,
         "response": f"Simulated response for: '{request.input_prompt}'"
     }
-    return response
 
 @app.post("/log_event")
 def log_event(event: LogEvent):
@@ -57,16 +57,17 @@ def clear_prompt_queue():
     prompt_queue.clear()
     return {"status": "cleared", "remaining": len(prompt_queue)}
 
+# 🔔 Webhook endpoint for Notion events (including verification challenge)
 @app.post("/notion_webhook")
 async def notion_webhook(request: Request):
     body = await request.json()
     print("🔔 Notion Webhook Body:", body)
 
-    # ✅ Respond to Notion's verification challenge
+    # ✅ Handle Notion verification (for subscription setup)
     if "challenge" in body:
         return JSONResponse(content={"challenge": body["challenge"]})
 
-    # ✅ Optionally log other webhook events
+    # 🧠 Log any actual event data from Notion
     memory_journal.append({
         "source": "Notion Webhook",
         "message": str(body),
