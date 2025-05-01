@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime, timezone
@@ -61,6 +62,17 @@ def clear_prompt_queue():
 async def notion_webhook(request: Request):
     body = await request.json()
     print("🔔 Webhook received from Notion:", body)
-    # Optional: append to memory or queue based on event type
+
+    # Handle Notion webhook verification
+    if "challenge" in body:
+        return JSONResponse(content={"challenge": body["challenge"]})
+
+    # Otherwise, handle regular webhook event
+    memory_journal.append({
+        "source": "Notion Webhook",
+        "message": str(body),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
     return {"status": "received"}
 
