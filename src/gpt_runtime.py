@@ -57,17 +57,16 @@ def clear_prompt_queue():
     prompt_queue.clear()
     return {"status": "cleared", "remaining": len(prompt_queue)}
 
-# 🔔 Webhook endpoint for Notion events
 @app.post("/notion_webhook")
 async def notion_webhook(request: Request):
     body = await request.json()
-    print("🔔 Webhook received from Notion:", body)
+    print("🔔 Notion Webhook Body:", body)
 
-    # Handle Notion webhook verification
+    # ✅ Respond to Notion's verification challenge
     if "challenge" in body:
         return JSONResponse(content={"challenge": body["challenge"]})
 
-    # Otherwise, handle regular webhook event
+    # ✅ Optionally log other webhook events
     memory_journal.append({
         "source": "Notion Webhook",
         "message": str(body),
