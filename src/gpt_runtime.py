@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 from typing import List
 
 from src.memory_store import (
-    add_memory,
-    get_all_memories,
-    add_prompt_to_queue,
-    get_prompt_queue,
+    log_event as add_memory,
+    fetch_memory as get_all_memories,
+    queue_prompt as add_prompt_to_queue,
+    fetch_prompt_queue as get_prompt_queue,
     clear_prompt_queue
 )
 
