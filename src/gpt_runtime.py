@@ -72,3 +72,7 @@ async def notion_webhook(request: Request):
     add_memory("Notion Webhook", str(body), datetime.now(timezone.utc).isoformat())
     return {"status": "received"}
 
+@app.get("/healthz")
+def healthcheck():
+    return {"status": "ok"}
+
