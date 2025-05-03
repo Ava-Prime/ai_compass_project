@@ -2,9 +2,10 @@ services:
   - type: web
     name: gpt-runtime
     env: python
-    region: oregon
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn src.gpt_runtime:app --host 0.0.0.0 --port 10000"
-    envVars:
-      - key: PORT
-        value: 10000
+    startCommand: "uvicorn src.gpt_runtime:app --host 0.0.0.0 --port $PORT"
+    plan: free
+    branch: main
+    repo: https://github.com/Ava-Prime/ai_compass_project
+    autoDeploy: true
+
