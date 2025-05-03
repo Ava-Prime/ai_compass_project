@@ -1,29 +1,26 @@
 openapi: 3.0.0
 info:
-  title: GPT Action Runtime
+  title: GPT Runtime API
   version: 1.0.0
+  description: API for GPT Agents to log memory, queue prompts, and call each other.
+
 servers:
   - url: https://gpt-runtime.onrender.com
 
 paths:
   /call_agent:
     post:
-      summary: Call another GPT with a prompt
+      summary: Call another agent and simulate a response
       operationId: callAgent
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                agent_name:
-                  type: string
-                input_prompt:
-                  type: string
+              $ref: "#/components/schemas/AgentRequest"
       responses:
         '200':
-          description: Agent response
+          description: Simulated response
 
   /log_event:
     post:
@@ -34,45 +31,75 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                source:
-                  type: string
-                message:
-                  type: string
-                timestamp:
-                  type: string
+              $ref: "#/components/schemas/LogEvent"
+      responses:
+        '200':
+          description: Event logged
 
   /queue_prompt:
     post:
-      summary: Add a prompt to the queue
+      summary: Queue a prompt for an agent
       operationId: queuePrompt
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                agent_name:
-                  type: string
-                prompt:
-                  type: string
-                priority:
-                  type: integer
-  /memory_journal:
-    get:
-      summary: Fetch the shared memory log
-      operationId: fetchMemoryJournal
+              $ref: "#/components/schemas/PromptRequest"
       responses:
         '200':
-          description: Memory contents
+          description: Prompt queued
+
+  /memory_journal:
+    get:
+      summary: Retrieve memory journal
+      operationId: getMemory
+      responses:
+        '200':
+          description: List of memory events
 
   /prompt_queue:
     get:
-      summary: Fetch the current prompt queue
-      operationId: fetchPromptQueue
+      summary: Retrieve queued prompts
+      operationId: getPromptQueue
       responses:
         '200':
-          description: Queue contents
+          description: List of queued prompts
+
+  /clear_prompt_queue:
+    post:
+      summary: Clear the prompt queue
+      operationId: clearPromptQueue
+      responses:
+        '200':
+          description: Queue cleared
+
+components:
+  schemas:
+    AgentRequest:
+      type: object
+      properties:
+        agent_name:
+          type: string
+        input_prompt:
+          type: string
+    LogEvent:
+      type: object
+      properties:
+        source:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    PromptRequest:
+      type: object
+      properties:
+        agent_name:
+          type: string
+        prompt:
+          type: string
+        priority:
+          type: integer
 

@@ -1,20 +1,22 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from datetime import datetime, timezone
-from typing import List
-
 from src.memory_store import (
-    log_event as add_memory,
-    fetch_memory as get_all_memories,
-    queue_prompt as add_prompt_to_queue,
-    fetch_prompt_queue as get_prompt_queue,
+    log_event,
+    queue_prompt,
+    fetch_memory,
+    fetch_prompt_queue,
     clear_prompt_queue
 )
 
-app = FastAPI()
+app = FastAPI(
+    title="GPT Runtime API",
+    version="0.1.0",
+    openapi_version="3.1.0",
+    servers=[{"url": "https://gpt-runtime.onrender.com"}]
+)
 
-# Models
+# Pydantic models for validation
 class AgentRequest(BaseModel):
     agent_name: str
     input_prompt: str
@@ -29,50 +31,43 @@ class PromptRequest(BaseModel):
     prompt: str
     priority: int
 
-# Endpoints
-@app.post("/call_agent")
-def call_agent(request: AgentRequest):
-    response = {
-        "agent": request.agent_name,
-        "response": f"Simulated response for: '{request.input_prompt}'"
+@app.post("/call_agent", summary="Call Agent")
+def call_agent(req: AgentRequest):
+    return {
+        "status": "called",
+        "agent": req.agent_name,
+        "input_prompt": req.input_prompt
     }
-    return response
 
-@app.post("/log_event")
-def log_event(event: LogEvent):
-    add_memory(event.source, event.message, event.timestamp)
-    return {"status": "logged", "entry": event}
+@app.post("/log_event", summary="Log Event")
+def log_event_api(req: LogEvent):
+    log_event(req.source, req.message)
+    return {"status": "logged", "event": req.dict()}
 
-@app.post("/queue_prompt")
-def queue_prompt(prompt: PromptRequest):
-    add_prompt_to_queue(prompt.agent_name, prompt.prompt, prompt.priority)
-    return {"status": "queued", "prompt": prompt}
+@app.post("/queue_prompt", summary="Queue Prompt")
+def queue_prompt_api(req: PromptRequest):
+    queue_prompt(req.agent_name, req.prompt, req.priority)
+    return {"status": "queued", "prompt": req.dict()}
 
-@app.get("/memory_journal")
+@app.get("/memory_journal", summary="Get Memory")
 def get_memory():
-    return get_all_memories()
+    return fetch_memory()
 
-@app.get("/prompt_queue")
+@app.get("/prompt_queue", summary="Get Queue")
 def get_queue():
-    return get_prompt_queue()
+    return fetch_prompt_queue()
 
-@app.post("/clear_prompt_queue")
+@app.post("/clear_prompt_queue", summary="Clear Queue")
 def clear_queue():
     clear_prompt_queue()
-    return {"status": "cleared", "remaining": 0}
+    return {"status": "cleared"}
 
-@app.post("/notion_webhook")
+@app.post("/notion_webhook", summary="Notion Webhook")
 async def notion_webhook(request: Request):
-    body = await request.json()
-    print("🔔 Notion Webhook Body:", body)
+    data = await request.json()
+    return {"status": "received", "data": data}
 
-    if "challenge" in body:
-        return JSONResponse(content={"challenge": body["challenge"]})
-
-    add_memory("Notion Webhook", str(body), datetime.now(timezone.utc).isoformat())
-    return {"status": "received"}
-
-@app.get("/healthz")
+@app.get("/healthz", summary="Healthcheck")
 def healthcheck():
     return {"status": "ok"}
 
